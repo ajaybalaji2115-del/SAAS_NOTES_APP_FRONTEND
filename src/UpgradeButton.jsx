@@ -5,7 +5,7 @@ export default function UpgradeButton({ token }) {
     try {
       const tenantSlug = prompt("Enter tenant slug (acme or globex):");
       const res = await fetch(
-        `http://localhost:8080/tenants/${tenantSlug}/upgrade`,
+        `https://saas-notes-l02w.onrender.com/tenants/${tenantSlug}/upgrade`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },

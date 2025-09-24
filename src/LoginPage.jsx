@@ -7,7 +7,7 @@ export default function LoginPage({ setToken }) {
   async function handleLogin(e) {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:8080/users/login", {
+      const res = await fetch("https://saas-notes-l02w.onrender.com/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

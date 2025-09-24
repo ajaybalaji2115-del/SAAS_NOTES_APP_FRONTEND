@@ -8,7 +8,7 @@ export default function NotesPage({ token, setToken }) {
   const [error, setError] = useState(null);
 
   async function fetchNotes() {
-    const res = await fetch("http://localhost:8080/notes", {
+    const res = await fetch("https://saas-notes-l02w.onrender.com/notes", {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
@@ -17,7 +17,7 @@ export default function NotesPage({ token, setToken }) {
 
   async function createNote() {
     try {
-      const res = await fetch("http://localhost:8080/notes", {
+      const res = await fetch("https://saas-notes-l02w.onrender.com/notes", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -38,7 +38,7 @@ export default function NotesPage({ token, setToken }) {
   }
 
   async function deleteNote(id) {
-    await fetch(`http://localhost:8080/notes/${id}`, {
+    await fetch(`https://saas-notes-l02w.onrender.com/notes/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
