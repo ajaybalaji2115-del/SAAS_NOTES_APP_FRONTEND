@@ -6,6 +6,7 @@ export default function NotesPage({ token, setToken }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [error, setError] = useState(null);
+  const [editingId, setEditingId] = useState(null); // Track which note is being updated
 
   async function fetchNotes() {
     const res = await fetch("https://saas-notes-l02w.onrender.com/notes", {
@@ -37,6 +38,29 @@ export default function NotesPage({ token, setToken }) {
     }
   }
 
+  async function updateNote(id) {
+    try {
+      const res = await fetch(`https://saas-notes-l02w.onrender.com/notes/${id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ title, content }),
+      });
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg);
+      }
+      setTitle("");
+      setContent("");
+      setEditingId(null); // Stop editing mode
+      fetchNotes();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   async function deleteNote(id) {
     await fetch(`https://saas-notes-l02w.onrender.com/notes/${id}`, {
       method: "DELETE",
@@ -53,6 +77,8 @@ export default function NotesPage({ token, setToken }) {
     <div style={{ maxWidth: "600px", margin: "20px auto" }}>
       <h2>Your Notes</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {/* Input Section */}
       <div style={{ marginBottom: "20px" }}>
         <input
           type="text"
@@ -80,21 +106,40 @@ export default function NotesPage({ token, setToken }) {
             minHeight: "80px",
           }}
         />
-        <button
-          onClick={createNote}
-          style={{
-            width: "100%",
-            padding: "10px",
-            backgroundColor: "#2196F3",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          Add Note
-        </button>
+        {editingId ? (
+          <button
+            onClick={() => updateNote(editingId)}
+            style={{
+              width: "100%",
+              padding: "10px",
+              backgroundColor: "orange",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+            }}
+          >
+            Save Changes
+          </button>
+        ) : (
+          <button
+            onClick={createNote}
+            style={{
+              width: "100%",
+              padding: "10px",
+              backgroundColor: "#2196F3",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+            }}
+          >
+            Add Note
+          </button>
+        )}
       </div>
+
+      {/* Notes List */}
       <ul style={{ listStyle: "none", padding: 0 }}>
         {notes.map((note) => (
           <li
@@ -118,14 +163,34 @@ export default function NotesPage({ token, setToken }) {
                 padding: "6px 12px",
                 borderRadius: "4px",
                 cursor: "pointer",
+                marginRight: "10px",
               }}
             >
               Delete
             </button>
+            <button
+              onClick={() => {
+                setEditingId(note.id);
+                setTitle(note.title);
+                setContent(note.content);
+              }}
+              style={{
+                background: "orange",
+                color: "white",
+                border: "none",
+                padding: "6px 12px",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              Update
+            </button>
           </li>
         ))}
       </ul>
+
       <UpgradeButton token={token} />
+
       <button
         onClick={() => setToken(null)}
         style={{
