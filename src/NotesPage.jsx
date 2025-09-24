@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import UpgradeButton from "./UpgradeButton";
 
-export default function NotesPage({ token, setToken }) {
+export default function NotesPage({ token, setToken, userId }) {
   const [notes, setNotes] = useState([]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -26,10 +26,7 @@ export default function NotesPage({ token, setToken }) {
         },
         body: JSON.stringify({ title, content }),
       });
-      if (!res.ok) {
-        const msg = await res.text();
-        throw new Error(msg);
-      }
+      if (!res.ok) throw new Error(await res.text());
       setTitle("");
       setContent("");
       fetchNotes();
@@ -39,27 +36,35 @@ export default function NotesPage({ token, setToken }) {
   }
 
   async function deleteNote(id) {
-    await fetch(`https://saas-notes-l02w.onrender.com/notes/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchNotes();
+    try {
+      const res = await fetch(
+        `https://saas-notes-l02w.onrender.com/notes/user/${userId}/note/${id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (!res.ok) throw new Error(await res.text());
+      fetchNotes();
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   async function updateNote(id) {
     try {
-      const res = await fetch(`https://saas-notes-l02w.onrender.com/notes/${id}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ title, content }),
-      });
-      if (!res.ok) {
-        const msg = await res.text();
-        throw new Error(msg);
-      }
+      const res = await fetch(
+        `https://saas-notes-l02w.onrender.com/notes/user/${userId}/note/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ title, content }),
+        }
+      );
+      if (!res.ok) throw new Error(await res.text());
       setTitle("");
       setContent("");
       setEditingId(null);
