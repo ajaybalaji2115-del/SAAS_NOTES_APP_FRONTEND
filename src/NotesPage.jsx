@@ -3,17 +3,24 @@ import UpgradeButton from "./UpgradeButton";
 
 export default function NotesPage({ token, setToken, userId }) {
   const [notes, setNotes] = useState([]);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [title, setTitle] = useState(""); // For Add Note
+  const [content, setContent] = useState(""); // For Add Note
   const [error, setError] = useState(null);
   const [editingId, setEditingId] = useState(null);
+  const [editTitle, setEditTitle] = useState(""); // For Edit Note
+  const [editContent, setEditContent] = useState(""); // For Edit Note
 
   async function fetchNotes() {
-    const res = await fetch("https://saas-notes-l02w.onrender.com/notes", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    setNotes(data);
+    try {
+      const res = await fetch("https://saas-notes-l02w.onrender.com/notes", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setNotes(data);
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   async function createNote() {
@@ -51,7 +58,7 @@ export default function NotesPage({ token, setToken, userId }) {
     }
   }
 
-  async function updateNote(id) {
+  async function updateNote(id, updatedTitle, updatedContent) {
     try {
       const res = await fetch(
         `https://saas-notes-l02w.onrender.com/notes/user/${userId}/note/${id}`,
@@ -61,12 +68,10 @@ export default function NotesPage({ token, setToken, userId }) {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ title, content }),
+          body: JSON.stringify({ title: updatedTitle, content: updatedContent }),
         }
       );
       if (!res.ok) throw new Error(await res.text());
-      setTitle("");
-      setContent("");
       setEditingId(null);
       fetchNotes();
     } catch (err) {
@@ -83,6 +88,7 @@ export default function NotesPage({ token, setToken, userId }) {
       <h2>Your Notes</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
 
+      {/* Add Note Section */}
       <div style={{ marginBottom: "20px" }}>
         <input
           type="text"
@@ -126,6 +132,7 @@ export default function NotesPage({ token, setToken, userId }) {
         </button>
       </div>
 
+      {/* Notes List */}
       <ul style={{ listStyle: "none", padding: 0 }}>
         {notes.map((note) => (
           <li
@@ -142,8 +149,8 @@ export default function NotesPage({ token, setToken, userId }) {
               <>
                 <input
                   type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
                   style={{
                     width: "100%",
                     padding: "8px",
@@ -153,8 +160,8 @@ export default function NotesPage({ token, setToken, userId }) {
                   }}
                 />
                 <textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
                   style={{
                     width: "100%",
                     padding: "8px",
@@ -164,7 +171,9 @@ export default function NotesPage({ token, setToken, userId }) {
                   }}
                 />
                 <button
-                  onClick={() => updateNote(note.id)}
+                  onClick={() =>
+                    updateNote(note.id, editTitle, editContent)
+                  }
                   style={{
                     background: "orange",
                     color: "white",
@@ -212,8 +221,8 @@ export default function NotesPage({ token, setToken, userId }) {
                 <button
                   onClick={() => {
                     setEditingId(note.id);
-                    setTitle(note.title);
-                    setContent(note.content);
+                    setEditTitle(note.title);
+                    setEditContent(note.content);
                   }}
                   style={{
                     background: "orange",
