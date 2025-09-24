@@ -6,7 +6,7 @@ export default function NotesPage({ token, setToken }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [error, setError] = useState(null);
-  const [editingId, setEditingId] = useState(null); // Track which note is being updated
+  const [editingId, setEditingId] = useState(null);
 
   async function fetchNotes() {
     const res = await fetch("https://saas-notes-l02w.onrender.com/notes", {
@@ -38,6 +38,14 @@ export default function NotesPage({ token, setToken }) {
     }
   }
 
+  async function deleteNote(id) {
+    await fetch(`https://saas-notes-l02w.onrender.com/notes/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    fetchNotes();
+  }
+
   async function updateNote(id) {
     try {
       const res = await fetch(`https://saas-notes-l02w.onrender.com/notes/${id}`, {
@@ -54,19 +62,11 @@ export default function NotesPage({ token, setToken }) {
       }
       setTitle("");
       setContent("");
-      setEditingId(null); // Stop editing mode
+      setEditingId(null);
       fetchNotes();
     } catch (err) {
       setError(err.message);
     }
-  }
-
-  async function deleteNote(id) {
-    await fetch(`https://saas-notes-l02w.onrender.com/notes/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchNotes();
   }
 
   useEffect(() => {
@@ -78,7 +78,6 @@ export default function NotesPage({ token, setToken }) {
       <h2>Your Notes</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {/* Input Section */}
       <div style={{ marginBottom: "20px" }}>
         <input
           type="text"
@@ -106,40 +105,22 @@ export default function NotesPage({ token, setToken }) {
             minHeight: "80px",
           }}
         />
-        {editingId ? (
-          <button
-            onClick={() => updateNote(editingId)}
-            style={{
-              width: "100%",
-              padding: "10px",
-              backgroundColor: "orange",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
-          >
-            Save Changes
-          </button>
-        ) : (
-          <button
-            onClick={createNote}
-            style={{
-              width: "100%",
-              padding: "10px",
-              backgroundColor: "#2196F3",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
-          >
-            Add Note
-          </button>
-        )}
+        <button
+          onClick={createNote}
+          style={{
+            width: "100%",
+            padding: "10px",
+            backgroundColor: "#2196F3",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+          }}
+        >
+          Add Note
+        </button>
       </div>
 
-      {/* Notes List */}
       <ul style={{ listStyle: "none", padding: 0 }}>
         {notes.map((note) => (
           <li
@@ -152,39 +133,96 @@ export default function NotesPage({ token, setToken }) {
               background: "#f9f9f9",
             }}
           >
-            <h4>{note.title}</h4>
-            <p>{note.content}</p>
-            <button
-              onClick={() => deleteNote(note.id)}
-              style={{
-                background: "red",
-                color: "white",
-                border: "none",
-                padding: "6px 12px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                marginRight: "10px",
-              }}
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => {
-                setEditingId(note.id);
-                setTitle(note.title);
-                setContent(note.content);
-              }}
-              style={{
-                background: "orange",
-                color: "white",
-                border: "none",
-                padding: "6px 12px",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
-              Update
-            </button>
+            {editingId === note.id ? (
+              <>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "8px",
+                    marginBottom: "6px",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc",
+                  }}
+                />
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "8px",
+                    marginBottom: "6px",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc",
+                  }}
+                />
+                <button
+                  onClick={() => updateNote(note.id)}
+                  style={{
+                    background: "orange",
+                    color: "white",
+                    border: "none",
+                    padding: "6px 12px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    marginRight: "10px",
+                  }}
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setEditingId(null)}
+                  style={{
+                    background: "gray",
+                    color: "white",
+                    border: "none",
+                    padding: "6px 12px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <h4>{note.title}</h4>
+                <p>{note.content}</p>
+                <button
+                  onClick={() => deleteNote(note.id)}
+                  style={{
+                    background: "red",
+                    color: "white",
+                    border: "none",
+                    padding: "6px 12px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    marginRight: "10px",
+                  }}
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingId(note.id);
+                    setTitle(note.title);
+                    setContent(note.content);
+                  }}
+                  style={{
+                    background: "orange",
+                    color: "white",
+                    border: "none",
+                    padding: "6px 12px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Update
+                </button>
+              </>
+            )}
           </li>
         ))}
       </ul>
