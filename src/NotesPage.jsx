@@ -7,20 +7,13 @@ export default function NotesPage({ token, setToken, userId }) {
   const [content, setContent] = useState("");
   const [error, setError] = useState(null);
   const [editingId, setEditingId] = useState(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editContent, setEditContent] = useState("");
 
   async function fetchNotes() {
-    try {
-      const res = await fetch("https://saas-notes-l02w.onrender.com/notes", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      setNotes(data);
-    } catch (err) {
-      setError(err.message);
-    }
+    const res = await fetch("https://saas-notes-l02w.onrender.com/notes", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    setNotes(data);
   }
 
   async function createNote() {
@@ -58,7 +51,7 @@ export default function NotesPage({ token, setToken, userId }) {
     }
   }
 
-  async function updateNote(id, updatedTitle, updatedContent) {
+  async function updateNote(id) {
     try {
       const res = await fetch(
         `https://saas-notes-l02w.onrender.com/notes/user/${userId}/note/${id}`,
@@ -68,10 +61,12 @@ export default function NotesPage({ token, setToken, userId }) {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ title: updatedTitle, content: updatedContent }),
+          body: JSON.stringify({ title, content }),
         }
       );
       if (!res.ok) throw new Error(await res.text());
+      setTitle("");
+      setContent("");
       setEditingId(null);
       fetchNotes();
     } catch (err) {
@@ -88,7 +83,6 @@ export default function NotesPage({ token, setToken, userId }) {
       <h2>Your Notes</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {/* Add Note */}
       <div style={{ marginBottom: "20px" }}>
         <input
           type="text"
@@ -132,7 +126,6 @@ export default function NotesPage({ token, setToken, userId }) {
         </button>
       </div>
 
-      {/* Notes List */}
       <ul style={{ listStyle: "none", padding: 0 }}>
         {notes.map((note) => (
           <li
@@ -149,8 +142,8 @@ export default function NotesPage({ token, setToken, userId }) {
               <>
                 <input
                   type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   style={{
                     width: "100%",
                     padding: "8px",
@@ -160,8 +153,8 @@ export default function NotesPage({ token, setToken, userId }) {
                   }}
                 />
                 <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
                   style={{
                     width: "100%",
                     padding: "8px",
@@ -171,9 +164,7 @@ export default function NotesPage({ token, setToken, userId }) {
                   }}
                 />
                 <button
-                  onClick={() =>
-                    updateNote(note.id, editTitle, editContent)
-                  }
+                  onClick={() => updateNote(note.id)}
                   style={{
                     background: "orange",
                     color: "white",
@@ -221,8 +212,8 @@ export default function NotesPage({ token, setToken, userId }) {
                 <button
                   onClick={() => {
                     setEditingId(note.id);
-                    setEditTitle(note.title);
-                    setEditContent(note.content);
+                    setTitle(note.title);
+                    setContent(note.content);
                   }}
                   style={{
                     background: "orange",
